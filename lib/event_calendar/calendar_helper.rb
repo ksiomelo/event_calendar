@@ -73,7 +73,8 @@ module EventCalendar
 
         :use_all_day => false,
         :use_javascript => true,
-        :link_to_day_action => false
+        :link_to_day_action => false,
+        :show_month_switcher => false
       }
       options = defaults.merge options
 
@@ -118,20 +119,28 @@ module EventCalendar
       cal << %(style="width: #{options[:width]}px;") if options[:width]
       cal << %(>)
 
-      # table header, including the monthname and links to prev & next month
+      # table header, including the monthname, links to prev & next month and views switcher
       if options[:show_header]
         cal << %(<table class="ec-calendar-header" cellpadding="0" cellspacing="0">)
         cal << %(<thead><tr>)
-        if options[:previous_month_text] or options[:next_month_text]
-          cal << %(<th colspan="2" class="ec-month-nav ec-previous-month">#{options[:previous_month_text]}</th>)
-          colspan = 3
-        else
-          colspan = 7
+        cal << %(<th class="ec-month-week"></th>)
+        cal << %(<th class="ec-month-name" colspan="3">)
+        cal << %(#{options[:month_name_text]})
+        if options[:previous_month_text]
+          cal << %(#{options[:previous_month_text]})
         end
-        cal << %(<th colspan="#{colspan}" class="ec-month-name">#{options[:month_name_text]}</th>)
         if options[:next_month_text]
-          cal << %(<th colspan="2" class="ec-month-nav ec-next-month">#{options[:next_month_text]}</th>)
+          cal << %(#{options[:next_month_text]})
         end
+        cal << %(</th>)
+        cal << %(<th colspan="4">)
+        cal << %(<div class="btn-group">)
+        cal << %(#{options[:daily_view_text]})
+        cal << %(#{options[:weekly_view_text]})
+        cal << %(#{options[:monthly_view_text]})
+        cal << %(#{options[:planning_view_text]})
+        cal << %(</div>)
+        cal << %(</th)
         cal << %(</tr></thead></table>)
       end
 
@@ -141,6 +150,7 @@ module EventCalendar
       # day names
       cal << %(<table class="ec-day-names" style="height: #{options[:day_names_height]}px;" cellpadding="0" cellspacing="0">)
       cal << %(<tbody><tr>)
+      cal << %(<th class="ec-week-name"></th>)
       day_names.each do |day_name|
         cal << %(<th class="ec-day-name" title="#{day_name}">#{day_name}</th>)
       end
@@ -165,6 +175,7 @@ module EventCalendar
         # this weeks background table
         cal << %(<table class="ec-row-bg" cellpadding="0" cellspacing="0">)
         cal << %(<tbody><tr>)
+        cal << %(<td class="ec-week-bg"></td>)
         first_day_of_week.upto(first_day_of_week+6) do |day|
           today_class = (day == Date.today) ? "ec-today-bg" : ""
           other_month_class = (day < first) || (day > last) ? 'ec-other-month-bg' : ''
@@ -178,6 +189,10 @@ module EventCalendar
 
         # day numbers row
         cal << %(<tr>)
+        # get the week number and display it on the left
+        cal << %(<td class="ec-week-number">)
+        cal << %(#{first_day_of_week.cweek})
+        cal << %(</td>)
         first_day_of_week.upto(last_day_of_week) do |day|
           cal << %(<td class="ec-day-header )
           cal << %(ec-today-header ) if options[:show_today] and (day == Date.today)
@@ -197,6 +212,7 @@ module EventCalendar
         # for each event strip, create a new table row
         options[:event_strips].each do |strip|
           cal << %(<tr>)
+          cal << %(<td class="ec-event-week"></td>)
           # go through through the strip, for the entries that correspond to the days of this week
           strip[row_num*7, 7].each_with_index do |event, index|
             day = first_day_of_week + index
@@ -285,6 +301,15 @@ module EventCalendar
 
       cal << %(</div>)
       cal << %(</div>)
+      
+      if options[:show_month_switcher]
+        cal << %(<div class="ec-footer">)
+        cal << %(#{select_month(options[:month], {}, { :id => 'month-switcher' })})
+        cal << %(#{select_year(options[:year], {}, { :id => 'year-switcher' })})
+        cal << %(<a class="btn btn-small" onclick="$(location).attr('href', '/calendar/'+$('#year-switcher').val()+'/'+$('#month-switcher').val());">Go</a>)
+        cal << %(</div)
+      end
+      
       cal << %(</div>)
     end
 

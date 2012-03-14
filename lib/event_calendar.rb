@@ -29,6 +29,12 @@ module EventCalendar
       event_strips
     end
     
+    def event_strips_for_range(strip_start, strip_end, find_options = {})
+      events = events_for_date_range(strip_start, strip_end, find_options)
+      event_strips = create_event_strips(strip_start, strip_end, events)
+      event_strips
+    end
+    
     # Expand start and end dates to show the previous month and next month's days,
     # that overlap with the shown months display
     def get_start_and_end_dates(shown_date, first_day_of_week=0)
