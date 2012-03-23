@@ -29,6 +29,17 @@ module EventCalendar
       event_strips
     end
     
+    def schedule_strips_for_month(shown_date, first_day_of_week=0, find_options = {})
+      if first_day_of_week.is_a?(Hash)
+        find_options.merge!(first_day_of_week)
+        first_day_of_week =  0
+      end
+      strip_start, strip_end = get_start_and_end_dates(shown_date, first_day_of_week)
+      schedules = schedules_for_date_range(strip_start, strip_end, find_options)
+      schedule_strips = create_schedule_strips(strip_start, strip_end, schedules)
+      schedule_strips
+    end
+    
     def event_strips_for_range(strip_start, strip_end, find_options = {})
       events = events_for_date_range(strip_start, strip_end, find_options)
       event_strips = create_event_strips(strip_start, strip_end, events)
@@ -59,6 +70,14 @@ module EventCalendar
         :all,
         :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time.utc, end_d.to_time.utc ],
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
+      )
+    end
+
+    def schedules_for_date_range(start_d, end_d, find_options = {})
+      self.scoped(find_options).find(
+        :all,
+        :conditions => [ "(? <= schedules.ends_at) AND (schedules.starts_at < ?)", start_d.to_time.utc, end_d.to_time.utc ],
+        :order => "schedules.starts_at ASC"
       )
     end
     
@@ -92,6 +111,37 @@ module EventCalendar
         end
       end
       event_strips
+    end
+    
+    def create_schedule_strips(strip_start, strip_end, schedules)
+      # create an inital schedule strip, with a nil entry for every day of the displayed days
+      schedule_strips = [[nil] * (strip_end - strip_start + 1)]
+      
+      schedules.each do |schedule|
+        cur_date = schedule.starts_at.to_date
+        end_date = schedule.ends_at.to_date
+        cur_date, end_date = schedule.clip_range(strip_start, strip_end)
+        start_range = (cur_date - strip_start).to_i
+        end_range = (end_date - strip_start).to_i
+      
+        # make sure the schedule is within our viewing range
+        if (start_range <= end_range) and (end_range >= 0)
+          range = start_range..end_range
+          
+          open_strip = space_in_current_strips?(schedule_strips, range)
+          
+          if open_strip.nil?
+            # no strips open, make a new one
+            new_strip = [nil] * (strip_end - strip_start + 1)
+            range.each {|r| new_strip[r] = schedule}
+            schedule_strips << new_strip
+          else
+            # found an open strip, add this schedule to it
+            range.each {|r| open_strip[r] = schedule}
+          end
+        end
+      end
+      schedule_strips
     end
     
     def space_in_current_strips?(event_strips, range)

@@ -238,7 +238,11 @@ module EventCalendar
                   cal << %(style="color: #{event.color}; )
                 else
                   cal << %(ec-event-bg" )
-                  cal << %(style="background-color: #{event.color}; )
+                  color = event.color
+                  if event.is_a?(SchedulePeriod)
+                    color = event.user.color
+                  end
+                  cal << %(style="background-color: #{color}; )
                 end
 
                 cal << %(padding-top: #{options[:event_padding_top]}px; )
