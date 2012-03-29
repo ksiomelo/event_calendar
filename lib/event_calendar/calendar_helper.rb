@@ -239,7 +239,7 @@ module EventCalendar
                 else
                   cal << %(ec-event-bg" )
                   color = event.color
-                  if event.is_a?(SchedulePeriod)
+                  if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
                     color = event.user.color
                   end
                   cal << %(style="background-color: #{color}; )
@@ -249,7 +249,7 @@ module EventCalendar
                 cal << %(height: #{options[:event_height] - options[:event_padding_top]}px;" )
                 if options[:use_javascript]
                   # custom attributes needed for javascript event highlighting
-                  cal << %(data-event-id="#{event.id}" data-event-class="#{class_name}" data-color="#{event.color}" )
+                  cal << %(data-event-id="#{event.id}" data-event-class="#{class_name}" data-color="#{color}" )
                 end
                 cal << %(>)
 

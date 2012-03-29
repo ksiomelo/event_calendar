@@ -28,7 +28,7 @@ module EventCalendar
       event_strips = create_event_strips(strip_start, strip_end, events)
       event_strips
     end
-    
+=begin
     def schedule_strips_for_month(shown_date, first_day_of_week=0, find_options = {})
       if first_day_of_week.is_a?(Hash)
         find_options.merge!(first_day_of_week)
@@ -39,7 +39,7 @@ module EventCalendar
       schedule_strips = create_schedule_strips(strip_start, strip_end, schedules)
       schedule_strips
     end
-    
+=end
     def event_strips_for_range(strip_start, strip_end, find_options = {})
       events = events_for_date_range(strip_start, strip_end, find_options)
       event_strips = create_event_strips(strip_start, strip_end, events)
@@ -72,7 +72,7 @@ module EventCalendar
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
     end
-
+=begin
     def schedules_for_date_range(start_d, end_d, find_options = {})
       self.scoped(find_options).find(
         :all,
@@ -80,13 +80,23 @@ module EventCalendar
         :order => "schedules.starts_at ASC"
       )
     end
-    
+=end
     # Create the various strips that show events.
     def create_event_strips(strip_start, strip_end, events)
       # create an inital event strip, with a nil entry for every day of the displayed days
       event_strips = [[nil] * (strip_end - strip_start + 1)]
+      logger.info 'create_event_strips:'
+      logger.info event_strips
+    
+      # we manage schedules overlapping
+      # we won't show 2 schedules for the same child on the same day
+      #scheduled_days = Array.new
+      #for child in current_family.children
+      #  scheduled_days[child.id] = [[nil] * (strip_end - strip_start + 1)]
+      #end
     
       events.each do |event|
+        logger.info event.inspect
         cur_date = event.start_at.to_date
         end_date = event.end_at.to_date
         cur_date, end_date = event.clip_range(strip_start, strip_end)
@@ -96,23 +106,44 @@ module EventCalendar
         # make sure the event is within our viewing range
         if (start_range <= end_range) and (end_range >= 0) 
           range = start_range..end_range
+          logger.info 'range = '+range.inspect
+
+          if event.is_a?(SchedulePeriod)
+            # we need to check if we don't overlap another schedule
+            logger.info 'it is a schedule period'
+            #for child in event.schedule.children do
+              #range.each { |r| scheduled_days[child.id][r] = true }
+              #logger.info "scheduled_days[#{child.id}] = #{scheduled_days[child.id].inspect}"
+            #end
+          end
           
           open_strip = space_in_current_strips?(event_strips, range)
+          logger.info 'open_strip = '+open_strip.inspect
           
           if open_strip.nil?
             # no strips open, make a new one
+            logger.info "no strips open"
             new_strip = [nil] * (strip_end - strip_start + 1)
-            range.each {|r| new_strip[r] = event}
+            range.each { |r|
+              if event.is_a?(SchedulePeriod)
+                new_strip[r] = event
+              else
+                new_strip[r] = event
+              end 
+            }
             event_strips << new_strip
           else
             # found an open strip, add this event to it
+            logger.info 'found an open strip'
             range.each {|r| open_strip[r] = event}
           end
         end
       end
+      logger.info event_strips.inspect
       event_strips
     end
     
+=begin
     def create_schedule_strips(strip_start, strip_end, schedules)
       # create an inital schedule strip, with a nil entry for every day of the displayed days
       schedule_strips = [[nil] * (strip_end - strip_start + 1)]
@@ -143,7 +174,7 @@ module EventCalendar
       end
       schedule_strips
     end
-    
+=end
     def space_in_current_strips?(event_strips, range)
       open_strip = nil
       for strip in event_strips
