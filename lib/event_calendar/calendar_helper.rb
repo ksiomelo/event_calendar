@@ -229,7 +229,11 @@ module EventCalendar
 
                 cal << %(<td class="ec-event-cell" colspan="#{(dates[1]-dates[0]).to_i + 1}" )
                 cal << %(style="padding-top: #{options[:event_margin]}px;">)
-                cal << %(<div id="ec-#{class_name}-#{event.id}" class="ec-event )
+                if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
+                  cal << %(<div id="ec-#{class_name}-#{event.id}-#{event.child_id}" class="ec-event )
+                else
+                  cal << %(<div id="ec-#{class_name}-#{event.id}" class="ec-event )
+                end
                 if class_name != "event"
                   cal << %(ec-#{class_name} )
                 end
