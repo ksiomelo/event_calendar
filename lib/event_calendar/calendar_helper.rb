@@ -134,13 +134,13 @@ module EventCalendar
         end
         cal << %(</th>)
         cal << %(<th colspan="4">)
-        cal << %(<div class="btn-group">)
-        cal << %(#{options[:daily_view_text]})
-        cal << %(#{options[:weekly_view_text]})
-        cal << %(#{options[:monthly_view_text]})
-        cal << %(#{options[:planning_view_text]})
-        cal << %(</div>)
-        cal << %(</th)
+        cal << %( <div class="btn-group">)
+        cal << %(   #{options[:daily_view_text]})
+        cal << %(   #{options[:weekly_view_text]})
+        cal << %(   #{options[:monthly_view_text]})
+        cal << %(   #{options[:planning_view_text]})
+        cal << %( </div>)
+        cal << %(</th>)
         cal << %(</tr></thead></table>)
       end
 
@@ -148,7 +148,7 @@ module EventCalendar
       cal << %(<div class="ec-body" style="height: #{height}px;">)
 
       # day names
-      cal << %(<table class="ec-day-names" style="height: #{options[:day_names_height]}px;" cellpadding="0" cellspacing="0">)
+      cal << %(<table class="ec-day-names" style="height: #{options[:day_names_height]}px;">)
       cal << %(<tbody><tr>)
       cal << %(<th class="ec-week-name"></th>)
       day_names.each do |day_name|
@@ -315,7 +315,7 @@ module EventCalendar
         cal << %(#{select_month(options[:month], {}, { :id => 'month-switcher' })})
         cal << %(#{select_year(options[:year], {}, { :id => 'year-switcher' })})
         cal << %(<a class="btn btn-small" onclick="$(location).attr('href', '/calendar/'+$('#year-switcher').val()+'/'+$('#month-switcher').val());">Go</a>)
-        cal << %(</div)
+        cal << %(</div>)
       end
       
       cal << %(</div>)
@@ -323,7 +323,20 @@ module EventCalendar
 
     # override this in your own helper for greater control
     def day_link(text, date, day_action)
-      link_to(text, params.merge(:action => day_action, :year => date.year, :month => date.month, :day => date.day), :class => 'ec-day-link')
+      day_link = %( <ul>)
+      day_link << %(  <li id="ec-day-#{date.to_s(:db)}-menu" class="dropdown">)
+      day_link << %(    <a class="dropdown-toggle" data-toggle="dropdown" href="ec-day-#{date.to_s(:db)}-menu">)
+      day_link << %(      #{text})
+      day_link << %(      <b class="caret"></b>)
+      day_link << %(    </a>)
+      day_link << %(    <ul class="dropdown-menu">)
+      day_link << %(      <li>#{link_to(t('calendar.links.add_event'), { :controller => 'events', :action=> 'new', :start => date.to_s(:db) }, { :remote => true, 'data-toggle' => 'modal', 'data-target' => '#add-event-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
+      day_link << %(      <li>#{link_to(t('calendar.links.view_day'), params.merge(:action => day_action, :year => date.year, :month => date.month, :day => date.day))}</li>)
+      day_link << %(    </ul>)
+      day_link << %(  </li>)
+      day_link << %(</ul>)
+      day_link
+      #link_to(text, params.merge(:action => day_action, :year => date.year, :month => date.month, :day => date.day), :class => 'ec-day-link')
     end
 
     # check if we should display without a background color
