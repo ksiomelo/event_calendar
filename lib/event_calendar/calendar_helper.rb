@@ -126,19 +126,20 @@ module EventCalendar
         cal << %(<th class="ec-month-week"></th>)
         cal << %(<th class="ec-month-name" colspan="3">)
         cal << %(#{options[:month_name_text]})
+        cal << %(</th>)
+        cal << %(<th colspan="4">)
+        cal << %( #{link_to(t('calendar.customize_calendar'), { :controller => 'calendar', :action=> 'customize' }, { :class => 'customize', :remote => true, 'data-toggle' => 'modal', 'data-target' => '#customize-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
+        cal << %( <div class="btn-group">)
+        cal << %(   #{options[:daily_view_text]})
+        cal << %(   #{options[:weekly_view_text]})
+        cal << %(   #{options[:monthly_view_text]})
+        cal << %(   #{options[:planning_view_text]})
         if options[:previous_month_text]
           cal << %(#{options[:previous_month_text]})
         end
         if options[:next_month_text]
           cal << %(#{options[:next_month_text]})
         end
-        cal << %(</th>)
-        cal << %(<th colspan="4">)
-        cal << %( <div class="btn-group">)
-        cal << %(   #{options[:daily_view_text]})
-        cal << %(   #{options[:weekly_view_text]})
-        cal << %(   #{options[:monthly_view_text]})
-        cal << %(   #{options[:planning_view_text]})
         cal << %( </div>)
         cal << %(</th>)
         cal << %(</tr></thead></table>)
