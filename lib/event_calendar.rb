@@ -72,15 +72,7 @@ module EventCalendar
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
     end
-=begin
-    def schedules_for_date_range(start_d, end_d, find_options = {})
-      self.scoped(find_options).find(
-        :all,
-        :conditions => [ "(? <= schedules.ends_at) AND (schedules.starts_at < ?)", start_d.to_time.utc, end_d.to_time.utc ],
-        :order => "schedules.starts_at ASC"
-      )
-    end
-=end
+
     # Create the various strips that show events.
     def create_event_strips(strip_start, strip_end, events)
       # create an inital event strip, with a nil entry for every day of the displayed days

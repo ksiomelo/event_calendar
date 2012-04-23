@@ -128,7 +128,9 @@ module EventCalendar
         cal << %(#{options[:month_name_text]})
         cal << %(</th>)
         cal << %(<th colspan="4">)
-        cal << %( #{link_to(t('calendar.customize_calendar'), { :controller => 'calendar', :action=> 'customize' }, { :class => 'customize', :remote => true, 'data-toggle' => 'modal', 'data-target' => '#customize-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
+        if controller_name == "calendar"
+          cal << %( #{link_to(t('calendar.customize_calendar'), { :controller => 'calendar', :action=> 'customize' }, { :class => 'customize', :remote => true, 'data-toggle' => 'modal', 'data-target' => '#customize-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
+        end
         cal << %( <div class="btn-group">)
         cal << %(   #{options[:daily_view_text]})
         cal << %(   #{options[:weekly_view_text]})
