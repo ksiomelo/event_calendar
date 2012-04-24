@@ -77,8 +77,8 @@ module EventCalendar
     def create_event_strips(strip_start, strip_end, events)
       # create an inital event strip, with a nil entry for every day of the displayed days
       event_strips = [[nil] * (strip_end - strip_start + 1)]
-      logger.info 'create_event_strips:'
-      logger.info event_strips
+      #logger.info 'create_event_strips:'
+      #logger.info event_strips
     
       # we manage schedules overlapping
       # we won't show 2 schedules for the same child on the same day
@@ -88,7 +88,7 @@ module EventCalendar
       #end
     
       events.each do |event|
-        logger.info event.inspect
+        #logger.info event.inspect
         cur_date = event.start_at.to_date
         end_date = event.end_at.to_date
         cur_date, end_date = event.clip_range(strip_start, strip_end)
@@ -98,11 +98,11 @@ module EventCalendar
         # make sure the event is within our viewing range
         if (start_range <= end_range) and (end_range >= 0) 
           range = start_range..end_range
-          logger.info 'range = '+range.inspect
+          #logger.info 'range = '+range.inspect
 
           if event.is_a?(SchedulePeriod)
             # we need to check if we don't overlap another schedule
-            logger.info 'it is a schedule period'
+            #logger.info 'it is a schedule period'
             #for child in event.schedule.children do
               #range.each { |r| scheduled_days[child.id][r] = true }
               #logger.info "scheduled_days[#{child.id}] = #{scheduled_days[child.id].inspect}"
@@ -110,11 +110,11 @@ module EventCalendar
           end
           
           open_strip = space_in_current_strips?(event_strips, range)
-          logger.info 'open_strip = '+open_strip.inspect
+          #logger.info 'open_strip = '+open_strip.inspect
           
           if open_strip.nil?
             # no strips open, make a new one
-            logger.info "no strips open"
+            #logger.info "no strips open"
             new_strip = [nil] * (strip_end - strip_start + 1)
             range.each { |r|
               if event.is_a?(SchedulePeriod)
@@ -126,12 +126,12 @@ module EventCalendar
             event_strips << new_strip
           else
             # found an open strip, add this event to it
-            logger.info 'found an open strip'
+            #logger.info 'found an open strip'
             range.each {|r| open_strip[r] = event}
           end
         end
       end
-      logger.info event_strips.inspect
+      #logger.info event_strips.inspect
       event_strips
     end
     
