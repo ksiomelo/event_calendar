@@ -252,7 +252,7 @@ module EventCalendar
                   cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*24}" )
                 else
                   if dates[1]-dates[0] == 0 # event starting and ending during the same day
-                    cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*24}" )
+                    cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*(event.end_at.hour-event.start_at.hour)}" )
                   else
                     cal << %(data-debug="#{dates[0]} - #{dates[1]} - #{event.start_at.hour} - #{event.end_at.hour}" colspan="#{((dates[1]-dates[0]).to_i-1)*24+(24-event.start_at.hour)+event.end_at.hour}" )
                   end
