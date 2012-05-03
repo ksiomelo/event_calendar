@@ -65,12 +65,40 @@ module EventCalendar
     end
     
     # Get the events overlapping the given start and end dates
-    def events_for_date_range(start_d, end_d, find_options = {})
-      self.scoped(find_options).find(
+    def events_for_date_range(start_d, end_d, with_recurring = false, find_options = {})
+      base_events = self.scoped(find_options).find(
         :all,
         :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time.utc, end_d.to_time.utc ],
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
+      logger.info "base_events = #{base_events.inspect}"
+      if with_recurring
+        recurring_events = self.scoped(find_options).find(
+          :all,
+          :conditions => [ "repeat_frequency IS NOT NULL" ],
+          :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
+        )
+        logger.info "recurring_events = #{recurring_events.inspect}"
+        recurring_events_in_date_range = Array.new
+        recurring_events.each do |recurring_event|
+          event_schedule = recurring_event.repeat_frequency
+          if event_schedule.occurs_between?(start_d.to_time, end_d.to_time)
+            event_occurrences = event_schedule.occurrences(end_d)
+            event_occurrences.each do |o|
+              if o.to_date >= start_d
+                e = recurring_event.dup
+                e.from_date = o
+                e.to_date = o + event_schedule.duration
+                e.base_event_id = recurring_event.id
+                recurring_events_in_date_range << e
+              end
+            end
+          end
+        end
+        logger.info "recurring_events_in_date_range = #{recurring_events_in_date_range.inspect}"
+        base_events << recurring_events_in_date_range
+      end
+      base_events.flatten
     end
 
     # Create the various strips that show events.
@@ -81,8 +109,8 @@ module EventCalendar
       events.each do |event|
 #        logger.info "----- event loop -----"
 #        logger.info "event_strips = #{event_strips.inspect}"
-        cur_date = event.start_at.to_date
-        end_date = event.end_at.to_date
+        cur_date = event.start_at
+        end_date = event.end_at
         cur_date, end_date = event.clip_range(strip_start, strip_end)
         start_range = (cur_date - strip_start).to_i
         end_range = (end_date - strip_start).to_i

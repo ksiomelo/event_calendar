@@ -349,7 +349,7 @@ module EventCalendar
         cal << %(<div class="ec-footer">)
         cal << %(#{select_month(options[:month], {}, { :id => 'month-switcher' })})
         cal << %(#{select_year(options[:year], {}, { :id => 'year-switcher' })})
-        cal << %(<a class="btn btn-small" onclick="$(location).attr('href', '/calendar/'+$('#year-switcher').val()+'/'+$('#month-switcher').val());">Go</a>)
+        cal << %(<a class="btn btn-small" onclick="$(location).attr('href', '/agenda/'+$('#year-switcher').val()+'/'+$('#month-switcher').val());">Go</a>)
         cal << %(</div>)
       end
       
