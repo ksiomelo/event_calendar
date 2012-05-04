@@ -241,14 +241,14 @@ module EventCalendar
                 no_bg = no_event_bg?(event, options)
                 class_name = event.class.name.tableize.singularize
 
-                if !event.all_day
+                if !event.all_day and (event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview))
                   (event.start_at.hour).times do
                     cal << %(<td class="ec-empty-hour"></td>)
                   end
                 end
 
                 cal << %(<td class="ec-event-cell" )
-                if event.all_day
+                if event.all_day or (!event.is_a?(SchedulePeriod) and !event.is_a?(SchedulePeriodPreview))
                   cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*24}" )
                 else
                   if dates[1]-dates[0] == 0 # event starting and ending during the same day
@@ -261,7 +261,7 @@ module EventCalendar
                 if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
                   cal << %(<div id="ec-#{class_name}-#{event.id}-#{event.child_id}" data-start-hour="" data-end-hour="" class="ec-event )
                 else
-                  cal << %(<div id="ec-#{class_name}-#{event.id}" class="ec-event )
+                  cal << %(<div id="ec-#{class_name}-#{event.id}-#{Time.now.to_i}" class="ec-event )
                 end
                 if class_name != "event"
                   cal << %(ec-#{class_name} )
@@ -312,7 +312,7 @@ module EventCalendar
 
                 cal << %(</div></td>)
                 
-                if !event.all_day
+                if !event.all_day and (event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview))
                   (24-event.end_at.hour).times do
                     cal << %(<td class="ec-empty-hour"></td>)
                   end

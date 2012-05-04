@@ -80,16 +80,17 @@ module EventCalendar
         )
         logger.info "recurring_events = #{recurring_events.inspect}"
         recurring_events_in_date_range = Array.new
-        recurring_events.each do |recurring_event|
+        recurring_events.each_with_index do |recurring_event, index|
           event_schedule = recurring_event.repeat_frequency
           if event_schedule.occurs_between?(start_d.to_time, end_d.to_time)
             event_occurrences = event_schedule.occurrences(end_d)
             event_occurrences.each do |o|
-              if o.to_date >= start_d
+              if o.to_date >= start_d and o != recurring_event.from_date
                 e = recurring_event.dup
                 e.from_date = o
                 e.to_date = o + event_schedule.duration
                 e.base_event_id = recurring_event.id
+                e.children << recurring_event.children.collect { |child| child.clone }
                 recurring_events_in_date_range << e
               end
             end
