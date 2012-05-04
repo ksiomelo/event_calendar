@@ -148,22 +148,24 @@ module EventCalendar
       end
 
       # body container (holds day names and the calendar rows)
-      cal << %(<div class="ec-body" style="height: #{height}px;">)
+#      cal << %(<div class="ec-body" style="height: #{height}px;">)
+      cal << %(<div class="ec-body">)
 
       # day names
       cal << %(<table class="ec-day-names" style="height: #{options[:day_names_height]}px;">)
       cal << %(<tbody><tr>)
       cal << %(<th class="ec-week-name"></th>)
       day_names.each do |day_name|
-#        cal << %(<th class="ec-day-name" title="#{day_name}">#{day_name}</th>)
-        cal << %(<th class="ec-day-name" title="#{day_name}" colspan="24">#{day_name}</th>)
+        cal << %(<th class="ec-day-name" title="#{day_name}">#{day_name}</th>)
+        #cal << %(<th class="ec-day-name" title="#{day_name}" colspan="24">#{day_name}</th>)
       end
       cal << %(</tr></tbody></table>)
 
       # container for all the calendar rows
       cal << %(<div class="ec-rows" style="top: #{options[:day_names_height]}px; )
-      cal << %(height: #{height - options[:day_names_height]}px;">)
-
+#      cal << %(height: #{height - options[:day_names_height]}px;">)
+      cal << %(">)
+      
       # initialize loop variables
       first_day_of_week = beginning_of_week(first, options[:first_day_of_week])
       last_day_of_week = end_of_week(first, options[:first_day_of_week])
@@ -173,7 +175,8 @@ module EventCalendar
 
       # go through a week at a time, until we reach the end of the month
       while(last_day_of_week <= last_day_of_cal)
-        cal << %(<div class="ec-row" style="top: #{top}px; height: #{row_heights[row_num]}px;">)
+#        cal << %(<div class="ec-row" style="top: #{top}px; height: #{row_heights[row_num]}px;">)
+        cal << %(<div class="ec-row">)
         top += row_heights[row_num]
 
         # this weeks background table
@@ -183,8 +186,8 @@ module EventCalendar
         first_day_of_week.upto(first_day_of_week+6) do |day|
           today_class = (day == Date.today) ? "ec-today-bg" : ""
           other_month_class = (day < first) || (day > last) ? 'ec-other-month-bg' : ''
-#          cal << %(<td class="ec-day-bg #{today_class} #{other_month_class}">&nbsp;</td>)
-          cal << %(<td class="ec-day-bg #{today_class} #{other_month_class}" colspan="24">&nbsp;</td>)
+          cal << %(<td class="ec-day-bg #{today_class} #{other_month_class}">&nbsp;</td>)
+          #cal << %(<td class="ec-day-bg #{today_class} #{other_month_class}" colspan="24">&nbsp;</td>)
         end
         cal << %(</tr></tbody></table>)
 
@@ -203,8 +206,8 @@ module EventCalendar
           cal << %(ec-today-header ) if options[:show_today] and (day == Date.today)
           cal << %(ec-other-month-header ) if (day < first) || (day > last)
           cal << %(ec-weekend-day-header) if weekend?(day)
-#          cal << %(" style="height: #{options[:day_nums_height]}px;">)
-          cal << %(" colspan="24" style="height: #{options[:day_nums_height]}px;">)
+          cal << %(" style="height: #{options[:day_nums_height]}px;">)
+          #cal << %(" colspan="24" style="height: #{options[:day_nums_height]}px;">)
           if options[:link_to_day_action]
             cal << day_link(day.day, day, options[:link_to_day_action])
           else
@@ -216,47 +219,52 @@ module EventCalendar
 
         # event rows for this day
         # for each event strip, create a new table row
-        logger.info "options[:event_strips] = #{options[:event_strips].inspect}"
+#        logger.info "options[:event_strips] = #{options[:event_strips].inspect}"
         options[:event_strips].each do |strip|
-          logger.info "----- strip loop -----"
-          logger.info "strip: #{strip.inspect} / row_num: #{row_num}"
+#          logger.info "----- strip loop -----"
+#          logger.info "strip: #{strip.inspect} / row_num: #{row_num}"
           cal << %(<tr>)
           cal << %(<td class="ec-event-week"></td>)
           # go through through the strip, for the entries that correspond to the days of this week
           strip[row_num*7, 7].each_with_index do |event, index|
-            logger.info "  ----- event loop -----"
+#            logger.info "  ----- event loop -----"
             day = first_day_of_week + index
-            logger.info "  day: #{day.inspect} / event: #{event.inspect} / index: #{index}"
+#            logger.info "  day: #{day.inspect} / event: #{event.inspect} / index: #{index}"
 
             if event
-              logger.info "  event != nil"
+#              logger.info "  event != nil"
               # get the dates of this event that fit into this week
               dates = event.clip_range(first_day_of_week, last_day_of_week)
-              logger.info "    strip dates: #{dates.inspect}"
+#              logger.info "    strip dates: #{dates.inspect}"
               # if the event (after it has been clipped) starts on this date,
               # then create a new cell that spans the number of days
               if dates[0] == day.to_date
-                logger.info "    dates[0] == day.to_date"
+#                logger.info "    dates[0] == day.to_date"
                 # check if we should display the bg color or not
                 no_bg = no_event_bg?(event, options)
                 class_name = event.class.name.tableize.singularize
-
+=begin
                 if !event.all_day and (event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview))
                   (event.start_at.hour).times do
                     cal << %(<td class="ec-empty-hour"></td>)
                   end
                 end
-
+=end
                 cal << %(<td class="ec-event-cell" )
+=begin
                 if event.all_day or (!event.is_a?(SchedulePeriod) and !event.is_a?(SchedulePeriodPreview))
-                  cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*24}" )
+                  #cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*24}" )
+                  cal << %(colspan="#{(dates[1]-dates[0]).to_i + 1}" )
                 else
                   if dates[1]-dates[0] == 0 # event starting and ending during the same day
                     cal << %(colspan="#{((dates[1]-dates[0]).to_i + 1)*(event.end_at.hour-event.start_at.hour)}" )
                   else
                     cal << %(data-debug="#{dates[0]} - #{dates[1]} - #{event.start_at.hour} - #{event.end_at.hour}" colspan="#{((dates[1]-dates[0]).to_i-1)*24+(24-event.start_at.hour)+event.end_at.hour}" )
                   end
+                  cal << %(colspan="#{(dates[1]-dates[0]).to_i-1" )
                 end
+=end
+                cal << %(colspan="#{(dates[1]-dates[0]).to_i + 1}" )
                 cal << %(style="padding-top: #{options[:event_margin]}px;">)
                 if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
                   cal << %(<div id="ec-#{class_name}-#{event.id}-#{event.child_id}" data-start-hour="" data-end-hour="" class="ec-event )
@@ -312,17 +320,18 @@ module EventCalendar
 
                 cal << %(</div></td>)
                 
-                if !event.all_day and (event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview))
-                  (24-event.end_at.hour).times do
-                    cal << %(<td class="ec-empty-hour"></td>)
-                  end
-                end
+#                if !event.all_day and (event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview))
+#                  (24-event.end_at.hour).times do
+#                    cal << %(<td class="ec-empty-hour"></td>)
+#                  end
+#                end
               end
 
             else
               # there wasn't an event, so create an empty cell and container
               cal << %(<td class="ec-event-cell ec-no-event-cell" )
-              cal << %(colspan="24" style="padding-top: #{options[:event_margin]}px;">)
+              #cal << %(colspan="24" style="padding-top: #{options[:event_margin]}px;">)
+              cal << %(style="padding-top: #{options[:event_margin]}px;">)
               cal << %(<div class="ec-event" )
               cal << %(style="padding-top: #{options[:event_padding_top]}px; )
               cal << %(height: #{options[:event_height] - options[:event_padding_top]}px;" )
