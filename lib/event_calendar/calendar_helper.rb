@@ -267,7 +267,12 @@ module EventCalendar
                 cal << %(colspan="#{(dates[1]-dates[0]).to_i + 1}" )
                 cal << %(style="padding-top: #{options[:event_margin]}px;">)
                 if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
-                  cal << %(<div id="ec-#{class_name}-#{event.id}-#{event.child_id}" data-start-hour="" data-end-hour="" class="ec-event )
+                  cal << %(<div id="ec-#{class_name}-#{event.id}-#{event.child_id}" )
+                  if event.exchange_time.present?
+                    cal << %(data-start-hour="#{event.exchange_time.hour}" )
+#                    cal << %(data-duration="#{(event.end_at - event.start_at) / 3600 + (24-event.exchange_time.hour)}" class="ec-event )
+                  end
+                  cal << %(class="ec-event )
                 else
                   cal << %(<div id="ec-#{class_name}-#{event.id}-#{Time.now.to_i}" class="ec-event )
                 end
