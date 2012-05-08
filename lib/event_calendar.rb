@@ -71,17 +71,21 @@ module EventCalendar
         :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time.utc, end_d.to_time.utc ],
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
-      logger.info "base_events = #{base_events.inspect}"
       if with_recurring
         recurring_events = self.scoped(find_options).find(
           :all,
-          :conditions => [ "repeat_frequency IS NOT NULL" ],
+          :conditions => [ "occurrences IS NOT NULL" ],
           :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
         )
-        logger.info "recurring_events = #{recurring_events.inspect}"
         recurring_events_in_date_range = Array.new
         recurring_events.each_with_index do |recurring_event, index|
-          event_schedule = recurring_event.repeat_frequency
+          # create first event and remove it from base events
+          base_events.delete(recurring_event)
+          recurring_event.base_event_id = recurring_event.id
+          recurring_events_in_date_range << recurring_event
+          
+          # create recurring events
+          event_schedule = recurring_event.occurrences
           if event_schedule.occurs_between?(start_d.to_time, end_d.to_time)
             event_occurrences = event_schedule.occurrences(end_d)
             event_occurrences.each do |o|
@@ -96,7 +100,6 @@ module EventCalendar
             end
           end
         end
-        logger.info "recurring_events_in_date_range = #{recurring_events_in_date_range.inspect}"
         base_events << recurring_events_in_date_range
       end
       base_events.flatten
