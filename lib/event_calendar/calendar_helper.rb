@@ -128,14 +128,11 @@ module EventCalendar
         cal << %(#{options[:month_name_text]})
         cal << %(</th>)
         cal << %(<th colspan="4">)
-        if controller_name == "calendar"
-          cal << %( #{link_to(t('calendar.customize_calendar'), { :controller => 'calendar', :action=> 'customize' }, { :class => 'customize', :remote => true, 'data-toggle' => 'modal', 'data-target' => '#customize-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
-        end
         cal << %( <div class="btn-group">)
-        cal << %(   #{options[:daily_view_text]})
-        cal << %(   #{options[:weekly_view_text]})
-        cal << %(   #{options[:monthly_view_text]})
-        cal << %(   #{options[:planning_view_text]})
+#        cal << %(   #{options[:daily_view_text]})
+#        cal << %(   #{options[:weekly_view_text]})
+#        cal << %(   #{options[:monthly_view_text]})
+#        cal << %(   #{options[:planning_view_text]})
         if options[:previous_month_text]
           cal << %(#{options[:previous_month_text]})
         end
@@ -358,15 +355,6 @@ module EventCalendar
 
       cal << %(</div>)
       cal << %(</div>)
-      
-      if options[:show_month_switcher]
-        cal << %(<div class="ec-footer">)
-        cal << %(#{select_month(options[:month], {}, { :id => 'month-switcher' })})
-        cal << %(#{select_year(options[:year], {}, { :id => 'year-switcher' })})
-        cal << %(<a class="btn btn-small" onclick="$(location).attr('href', '/agenda/'+$('#year-switcher').val()+'/'+$('#month-switcher').val());">Go</a>)
-        cal << %(</div>)
-      end
-      
       cal << %(</div>)
     end
 
