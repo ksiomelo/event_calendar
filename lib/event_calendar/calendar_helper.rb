@@ -206,7 +206,7 @@ module EventCalendar
           cal << %(" style="height: #{options[:day_nums_height]}px;">)
           #cal << %(" colspan="24" style="height: #{options[:day_nums_height]}px;">)
           if options[:link_to_day_action]
-            cal << day_link(day.day, day, options[:link_to_day_action])
+            cal << day_link(day.day, day)
           else
             cal << %(#{day.day})
           end
@@ -359,16 +359,16 @@ module EventCalendar
     end
 
     # override this in your own helper for greater control
-    def day_link(text, date, day_action)
+    def day_link(text, date)
       day_link = %( <ul>)
       day_link << %(  <li id="ec-day-#{date.to_s(:db)}-menu" class="dropdown">)
-      day_link << %(    <a class="dropdown-toggle" data-toggle="dropdown" href="ec-day-#{date.to_s(:db)}-menu">)
+      day_link << %(    <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="ec-day-#{date.to_s(:db)}-menu">)
       day_link << %(      #{text})
       day_link << %(      <b class="caret"></b>)
       day_link << %(    </a>)
       day_link << %(    <ul class="dropdown-menu">)
       day_link << %(      <li>#{link_to(t('calendar.links.add_event'), { :controller => 'events', :action=> 'new', :start => date.to_s(:db) }, { :remote => true, 'data-toggle' => 'modal', 'data-target' => '#add-event-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
-      day_link << %(      <li>#{link_to(t('calendar.links.view_day'), params.merge(:action => day_action, :year => date.year, :month => date.month, :day => date.day))}</li>)
+      day_link << %(      <li>#{link_to(t('calendar.links.view_day'), params.merge(:action => :day, :year => date.year, :month => date.month, :day => date.day))}</li>)
       day_link << %(    </ul>)
       day_link << %(  </li>)
       day_link << %(</ul>)
