@@ -283,7 +283,7 @@ module EventCalendar
                   cal << %(ec-event-bg" )
                   color = event.color
                   if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
-                    color = event.user.color
+                    color = event.parent.color
                   end
                   cal << %(style="background-color: #{color}; )
                 end

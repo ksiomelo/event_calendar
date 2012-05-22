@@ -79,20 +79,19 @@ module EventCalendar
         )
         recurring_events_in_date_range = Array.new
         recurring_events.each_with_index do |recurring_event, index|
-          # create first event and remove it from base events
+          # remove it from base events and add initial event
           base_events.delete(recurring_event)
-          recurring_event.base_event_id = recurring_event.id
-          recurring_events_in_date_range << recurring_event
-          
-          # create recurring events
-          event_schedule = recurring_event.occurrences
-          if event_schedule.occurs_between?(start_d.to_time, end_d.to_time)
-            event_occurrences = event_schedule.occurrences(end_d)
-            event_occurrences.each do |o|
-              if o.to_date >= start_d and o != recurring_event.from_date
+          # if this recurring event occurs during the date range
+          if recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time)
+            recurring_event.base_event_id = recurring_event.id
+#            recurring_events_in_date_range << recurring_event
+
+            # add recurring events
+            recurring_event.occurrences.occurrences(end_d.to_datetime+1.day).each do |o|
+              if o.to_date >= start_d# and o != recurring_event.start_at
                 e = recurring_event.dup
-                e.from_date = o
-                e.to_date = o + event_schedule.duration
+                e.start_at = o
+                e.end_at = o + recurring_event.occurrences.duration
                 e.base_event_id = recurring_event.id
                 e.children << recurring_event.children.collect { |child| child.clone }
                 recurring_events_in_date_range << e
