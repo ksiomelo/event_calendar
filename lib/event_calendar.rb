@@ -74,13 +74,16 @@ module EventCalendar
       if with_recurring
         recurring_events = self.scoped(find_options).find(
           :all,
-          :conditions => [ "occurrences IS NOT NULL" ],
+          :conditions => [ "repeating=1" ],
+#          :conditions => [ "occurrences IS NOT NULL" ],
           :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
         )
         recurring_events_in_date_range = Array.new
         recurring_events.each_with_index do |recurring_event, index|
-          # remove it from base events and add initial event
-          base_events.delete(recurring_event)
+          if !recurring_event.occurrences.to_s.empty?
+            # remove it from base events if we have occurrences
+            base_events.delete(recurring_event)
+          end
           # if this recurring event occurs during the date range
           if recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time)
             recurring_event.base_event_id = recurring_event.id
@@ -201,7 +204,7 @@ module EventCalendar
     end
     
     def color
-      self[:color] || '#90A938'
+      self[:color] || '#96AF41'
     end
   
     def days

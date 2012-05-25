@@ -298,7 +298,7 @@ module EventCalendar
 
                 # add a left arrow if event is clipped at the beginning
                 if event.start_at.to_date < dates[0]
-                  cal << %(<div class="ec-left-arrow"></div>)
+                  cal << %(<div class="ec-left-arrow"></div><div class="ec-event-left-spacer"></div>)
                 end
                 # add a right arrow if event is clipped at the end
                 if event.end_at.to_date > dates[1]
@@ -368,7 +368,6 @@ module EventCalendar
       day_link << %(    </a>)
       day_link << %(    <ul class="dropdown-menu">)
       day_link << %(      <li>#{link_to(t('calendar.links.add_event'), { :controller => 'events', :action=> 'new', :start => date.to_s(:db) }, { :remote => true, 'data-toggle' => 'modal', 'data-target' => '#add-event-modal', 'data-backdrop' => true, 'data-keyboard' => true })}</li>)
-      day_link << %(      <li>#{link_to(t('calendar.links.view_day'), params.merge(:action => :day, :year => date.year, :month => date.month, :day => date.day))}</li>)
       day_link << %(    </ul>)
       day_link << %(  </li>)
       day_link << %(</ul>)
