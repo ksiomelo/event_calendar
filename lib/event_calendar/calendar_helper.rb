@@ -73,8 +73,7 @@ module EventCalendar
 
         :use_all_day => false,
         :use_javascript => true,
-        :link_to_day_action => false,
-        :show_month_switcher => false
+        :link_to_day_action => false
       }
       options = defaults.merge options
 
@@ -284,6 +283,12 @@ module EventCalendar
                   color = event.color
                   if event.is_a?(SchedulePeriod) or event.is_a?(SchedulePeriodPreview)
                     color = event.parent.color
+                  elsif event.is_a?(Swap)
+                    color = event.to_user.color
+                  elsif event.is_a?(Visitation)
+                    color = event.parent.color
+                  else
+                    color = '#F0F0F0'
                   end
                   cal << %(style="background-color: #{color}; )
                 end
@@ -314,7 +319,11 @@ module EventCalendar
 
                 if block_given?
                   # add the additional html that was passed as a block to this helper
-                  cal << block.call({:event => event, :day => day.to_date, :options => options})
+                  begin
+                    cal << block.call({:event => event, :day => day.to_date, :options => options})
+                  rescue
+                    raise event.inspect
+                  end
                 else
                   # default content in case nothing is passed in
                   cal << %(<a href="/#{class_name.pluralize}/#{event.id}" title="#{h(event.name)}">#{h(event.name)}</a>)
@@ -377,7 +386,7 @@ module EventCalendar
 
     # check if we should display without a background color
     def no_event_bg?(event, options)
-      options[:use_all_day] && !event.all_day && event.days == 0
+      options[:use_all_day] && !event.all_day && event.days == 0 && !event.is_a?(SchedulePeriod) && !event.is_a?(Visitation)
     end
 
     # default html for displaying an event's time
