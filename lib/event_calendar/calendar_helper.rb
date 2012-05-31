@@ -321,8 +321,6 @@ module EventCalendar
                   # add the additional html that was passed as a block to this helper
                   begin
                     cal << block.call({:event => event, :day => day.to_date, :options => options})
-                  rescue
-                    raise event.inspect
                   end
                 else
                   # default content in case nothing is passed in
