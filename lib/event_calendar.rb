@@ -68,7 +68,7 @@ module EventCalendar
     def events_for_date_range(start_d, end_d, with_recurring = false, find_options = {})
       base_events = self.scoped(find_options).find(
         :all,
-        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time.utc, end_d.to_time.utc ],
+        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time, end_d.to_time ],
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
       if with_recurring
@@ -85,13 +85,15 @@ module EventCalendar
             base_events.delete(recurring_event)
           end
           # if this recurring event occurs during the date range
-          if recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time)
+          if 1 == 1 or recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time) or recurring_event.occurrences.occurring_at?(start_d.to_time)
+            logger.info "recurring_event #{recurring_event.id}"
             recurring_event.base_event_id = recurring_event.id
 #            recurring_events_in_date_range << recurring_event
 
             # add recurring events
             recurring_event.occurrences.occurrences(end_d.to_datetime+1.day).each do |o|
-              if o.to_date >= start_d# and o != recurring_event.start_at
+              logger.info "recurring_event #{recurring_event.id} / o = #{o.inspect}"
+              if 1 == 1 or o.to_date >= start_d# and o != recurring_event.start_at
                 e = recurring_event.dup
                 e.start_at = o
                 e.end_at = o + recurring_event.occurrences.duration
@@ -107,7 +109,7 @@ module EventCalendar
                     occurring_days << day
                   end
                 end
-                logger.info "----- #{recurring_event.id} / #{occurring_days.inspect}"
+                logger.info "----- #{recurring_event.id} / occurring_days = #{occurring_days.inspect}"
                 if occurring_days.size-1 != (e.end_at.to_date - e.start_at.to_date) and !occurring_days.empty?
                   logger.info " ---- occurring_days.size !="
                   e.start_at = occurring_days.first.to_datetime
@@ -267,7 +269,7 @@ module EventCalendar
       else
         clipped_end = end_at_d
       end
-      [clipped_start, clipped_end]
+      [clipped_start.to_date, clipped_end]
     end
 
     def adjust_all_day_dates
