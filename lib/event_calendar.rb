@@ -277,8 +277,10 @@ module EventCalendar
         self.start_at = self.start_at.beginning_of_day
 
         if self.end_at
-          self.end_at = self.end_at.beginning_of_day + 1.day - 1.second
+#          self.end_at = self.end_at.beginning_of_day + 1.day - 1.second
+          self.end_at = self.end_at.beginning_of_day - 1.second
         else
+#          self.end_at = self.start_at + 1.day - 1.second
           self.end_at = self.start_at + 1.day - 1.second
         end
       end
