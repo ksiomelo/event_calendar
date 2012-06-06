@@ -277,12 +277,19 @@ module EventCalendar
         self.start_at = self.start_at.beginning_of_day
 
         if self.end_at
-#          self.end_at = self.end_at.beginning_of_day + 1.day - 1.second
-          self.end_at = self.end_at.beginning_of_day - 1.second
+          if self.is_a?(Swap)
+#            self.end_at = self.end_at.beginning_of_day - 1.second
+            self.end_at = self.end_at.end_of_day - 1.day
+          else
+            self.end_at = self.end_at.beginning_of_day + 1.day - 1.second
+          end
         else
-#          self.end_at = self.start_at + 1.day - 1.second
           self.end_at = self.start_at + 1.day - 1.second
         end
+      end
+      if self.is_a?(SchedulePeriod) or self.is_a?(Swap)
+        self.start_at = Time.at(self.start_at).utc
+        self.end_at = Time.at(self.end_at).utc
       end
     end
 
