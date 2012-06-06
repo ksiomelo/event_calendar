@@ -287,10 +287,13 @@ module EventCalendar
           self.end_at = self.start_at + 1.day - 1.second
         end
       end
+      #UTCOMMENT
+=begin
       if self.is_a?(SchedulePeriod) or self.is_a?(Swap)
         self.start_at = Time.at(self.start_at).utc
         self.end_at = Time.at(self.end_at).utc
       end
+=end
     end
 
   end
