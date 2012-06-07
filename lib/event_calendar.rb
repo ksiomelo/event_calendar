@@ -85,16 +85,48 @@ module EventCalendar
             base_events.delete(recurring_event)
           end
           
-          recurring_event.occurrences.occurrences(end_d.to_time+1.day).each do |o|
-            o_start = o
-            o_end = o + recurring_event.occurrences.duration
-            if !recurring_event.occurrences.exception_times.include?(start_d.to_time+1.second) and o_start.to_time <= end_d.to_time and o_end.to_time >= start_d.to_time
+          recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
+            o_start = o.to_time
+            o_end = o_start + recurring_event.occurrences.duration
+            if !recurring_event.occurrences.exception_times.include?(start_d+1.second) and o_start <= end_d and o_end >= start_d
               e = recurring_event.dup
               e.children << recurring_event.children.dup
               e.start_at = o_start
               e.end_at = o_end
               e.base_event_id = recurring_event.id
-              recurring_events_in_date_range << e
+              #recurring_events_in_date_range << e
+              
+              occurring_days = []
+              e.start_at.to_date.upto(e.end_at.to_date) do |day|
+                if !recurring_event.occurrences.exception_times.include?(day.to_time+1.second)
+                  occurring_days << day
+                end
+              end
+              #logger.info "----- #{recurring_event.id} / occurring_days = #{occurring_days.inspect}"
+              if occurring_days.size-1 != (e.end_at.to_date - e.start_at.to_date) and !occurring_days.empty?
+                #logger.info " ---- occurring_days.size !="
+                e.start_at = occurring_days.first.to_datetime
+                e.end_at = e.start_at
+                for day in occurring_days do
+                  #logger.info "day #{day.inspect}"
+                  if day != e.end_at.to_date
+                    if day == e.end_at.to_date.tomorrow
+                      #logger.info "tomorrow (#{day.to_datetime.inspect})"
+                      e.end_at = day.to_datetime
+                    else
+                      recurring_events_in_date_range << e
+                      e = recurring_event.dup
+                      e.children << recurring_event.children.dup
+                      e.base_event_id = recurring_event.id
+                      e.start_at = day.to_time
+                      e.end_at = e.start_at
+                    end
+                  end
+                end
+              end
+              if !occurring_days.empty?
+                recurring_events_in_date_range << e
+              end
             end
           end
         end
