@@ -84,8 +84,23 @@ module EventCalendar
             # remove it from base events if we have occurrences
             base_events.delete(recurring_event)
           end
+          
+          recurring_event.occurrences.occurrences(end_d.to_time+1.day).each do |o|
+            o_start = o
+            o_end = o + recurring_event.occurrences.duration
+            if !recurring_event.occurrences.exception_times.include?(start_d.to_time+1.second) and o_start.to_time <= end_d.to_time and o_end.to_time >= start_d.to_time
+              e = recurring_event.dup
+              e.children << recurring_event.children.dup
+              e.start_at = o_start
+              e.end_at = o_end
+              e.base_event_id = recurring_event.id
+              recurring_events_in_date_range << e
+            end
+          end
+        end
+=begin
           # if this recurring event occurs during the date range
-          if 1 == 1 or recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time) or recurring_event.occurrences.occurring_at?(start_d.to_time)
+          if recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time) or recurring_event.occurrences.occurring_at?(start_d.to_time)
             logger.info "recurring_event #{recurring_event.id}"
             recurring_event.base_event_id = recurring_event.id
 #            recurring_events_in_date_range << recurring_event
@@ -140,6 +155,7 @@ module EventCalendar
             end
           end
         end
+=end
         base_events << recurring_events_in_date_range
       end
       base_events.flatten
@@ -278,8 +294,8 @@ module EventCalendar
 
         if self.end_at
           if self.is_a?(Swap)
-#            self.end_at = self.end_at.beginning_of_day - 1.second
-            self.end_at = self.end_at.end_of_day - 1.day
+#            self.end_at = self.end_at.end_of_day - 1.day
+            self.end_at = self.end_at.beginning_of_day
           else
             self.end_at = self.end_at.beginning_of_day + 1.day - 1.second
           end
