@@ -66,15 +66,11 @@ module EventCalendar
     
     # Get the events overlapping the given start and end dates
     def events_for_date_range(start_d, end_d, with_recurring = false, find_options = {})
-      if !with_recurring
-        base_events = self.scoped(find_options).find(
-          :all,
-          :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time, end_d.to_time ],
-          :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
-        )
-      else
-        base_events = []
-      end
+      base_events = self.scoped(find_options).find(
+        :all,
+        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time, end_d.to_time ],
+        :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
+      )
       if with_recurring
         recurring_events = self.scoped(find_options).find(
           :all,
@@ -84,12 +80,10 @@ module EventCalendar
         )
         recurring_events_in_date_range = Array.new
         recurring_events.each_with_index do |recurring_event, index|
-=begin
           if !recurring_event.occurrences.to_s.empty?
             # remove it from base events if we have occurrences
             base_events.delete(recurring_event)
           end
-=end
           
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
             o_start = o.to_time
