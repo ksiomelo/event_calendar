@@ -82,7 +82,7 @@ module EventCalendar
         recurring_events.each_with_index do |recurring_event, index|
           if !recurring_event.occurrences.to_s.empty?
             # remove it from base events if we have occurrences
-            base_events.delete(recurring_event)
+            #TEMP base_events.delete(recurring_event)
           end
           
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
