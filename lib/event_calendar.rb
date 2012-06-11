@@ -199,6 +199,9 @@ module EventCalendar
       event_strips = [[nil] * (strip_end - strip_start + 1)]
 
       events.each do |event|
+        if event.is_a?(Swap) and !event.all_day?
+          event.end_at = event.end_at.beginning_of_day - 1.second
+        end
 #        logger.info "----- event loop -----"
 #        logger.info "event_strips = #{event_strips.inspect}"
         cur_date = event.start_at
