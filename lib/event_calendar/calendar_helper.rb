@@ -384,7 +384,7 @@ module EventCalendar
 
     # check if we should display without a background color
     def no_event_bg?(event, options)
-      options[:use_all_day] && !event.all_day && event.days == 0 && !event.is_a?(SchedulePeriod) && !event.is_a?(Visitation)
+      options[:use_all_day] && !event.all_day && event.days == 0 && !event.is_a?(SchedulePeriod) && !event.is_a?(Visitation) && !event.is_a?(Swap)
     end
 
     # default html for displaying an event's time
