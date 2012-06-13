@@ -88,6 +88,12 @@ module EventCalendar
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
             o_start = o.to_time
             o_end = o_start + recurring_event.occurrences.duration
+
+            if recurring_event.respond_to?(:repeating_until) and recurring_event.repeating_until.present? 
+              if recurring_event.repeating_until < o_end
+                o_end = recurring_event.repeating_until
+              end
+            end
             if !recurring_event.occurrences.exception_times.include?(start_d+1.second) and o_start <= end_d and o_end >= start_d
               e = recurring_event.dup
               e.children << recurring_event.children.dup
@@ -199,13 +205,21 @@ module EventCalendar
       event_strips = [[nil] * (strip_end - strip_start + 1)]
 
       events.each do |event|
+        
+      
+        # If the repeating_until date happens before the end_at of the event, repeating_until should be the real end_date
+        real_end = event.end_at
+        if event.respond_to?(:repeating_until) and event.repeating_until.present? and event.repeating_until < event.end_at
+          real_end = event.repeating_until
+        end
+
         if event.is_a?(Swap) and !event.all_day?
           event.end_at = event.end_at.beginning_of_day - 1.second
         end
 #        logger.info "----- event loop -----"
 #        logger.info "event_strips = #{event_strips.inspect}"
         cur_date = event.start_at
-        end_date = event.end_at
+        end_date = real_end
         cur_date, end_date = event.clip_range(strip_start, strip_end)
         start_range = (cur_date - strip_start).to_i
         end_range = (end_date - strip_start).to_i
