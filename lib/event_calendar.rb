@@ -88,33 +88,12 @@ module EventCalendar
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
             o_start = o.to_time
             o_end = o_start + recurring_event.occurrences.duration
-              
-            # if repeating_until occurs before the end of the recurrence, recurring_event must stop on repeating_until  
-            
+
             if recurring_event.respond_to?(:repeating_until) and recurring_event.repeating_until.present? 
               if recurring_event.repeating_until < o_end
                 o_end = recurring_event.repeating_until
               end
             end
-            
-            # If the current recurring_event end after a priority recurring_event started, the first one must stop at the second's start date
-            # Look for prior recurring_event
-            
-            if recurring_event.is_a?(SchedulePeriod)
-              logger.info recurring_event.inspect
-              logger.info recurring_event.schedule.inspect
-              current_schedule = recurring_event.schedule
-              if current_schedule.ends_at >= o_end.to_date
-                others = current_schedule.family.schedules.find(:all, :conditions => ["step = 2 and position < ? and starts_at < ?", current_schedule.position, o_end], :order => "starts_at ASC")
-                if others.present?
-                  logger.info others.inspect
-                  logger.info others.first.inspect
-                  o_end = others.first.starts_at - 1.day
-                
-                end
-              end
-            end
-            
             if !recurring_event.occurrences.exception_times.include?(start_d+1.second) and o_start <= end_d and o_end >= start_d
               e = recurring_event.dup
               e.children << recurring_event.children.dup
