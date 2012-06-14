@@ -78,6 +78,7 @@ module EventCalendar
 #          :conditions => [ "occurrences IS NOT NULL" ],
           :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
         )
+        
         recurring_events_in_date_range = Array.new
         recurring_events.each_with_index do |recurring_event, index|
           if !recurring_event.occurrences.to_s.empty?
@@ -88,6 +89,20 @@ module EventCalendar
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
             o_start = o.to_time
             o_end = o_start + recurring_event.occurrences.duration
+            
+            # 2012-06-14
+            # If the repeating_until date occurs before defined o_end, o_end must be equal to repeating_until
+
+            if recurring_event.respond_to?(:repeating_until) and recurring_event.repeating_until.present? 
+              if recurring_event.repeating_until < o_end
+                o_end = recurring_event.repeating_until
+              end
+            end
+            
+            # EOF
+            
+            # Check if the recurring_event occurs between our dates
+             
             if !recurring_event.occurrences.exception_times.include?(start_d+1.second) and o_start <= end_d and o_end >= start_d
               e = recurring_event.dup
               e.children << recurring_event.children.dup
@@ -130,6 +145,8 @@ module EventCalendar
             end
           end
         end
+
+
 =begin
           # if this recurring event occurs during the date range
           if recurring_event.occurrences.occurs_between?(start_d.to_time, end_d.to_time) or recurring_event.occurrences.occurring_at?(start_d.to_time)
@@ -209,7 +226,7 @@ module EventCalendar
         cur_date, end_date = event.clip_range(strip_start, strip_end)
         start_range = (cur_date - strip_start).to_i
         end_range = (end_date - strip_start).to_i
-#        logger.info "event = #{event.inspect} / cur_date: #{cur_date.inspect} / end_date: #{end_date.inspect} / start_range: #{start_range} / end_range: #{end_range}"
+#        logger.info "event = #{event.type} ##{event.id} / cur_date: #{cur_date.inspect} / end_date: #{end_date.inspect} / start_range: #{start_range} / end_range: #{end_range}"
       
         # make sure the event is within our viewing range
         if (start_range <= end_range) and (end_range >= 0)
