@@ -66,11 +66,13 @@ module EventCalendar
     
     # Get the events overlapping the given start and end dates
     def events_for_date_range(start_d, end_d, with_recurring = false, find_options = {})
+
       base_events = self.scoped(find_options).find(
         :all,
-        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time, end_d.to_time ],
+        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time_in_current_zone, end_d.to_time_in_current_zone ],
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
+      
       if with_recurring
         recurring_events = self.scoped(find_options).find(
           :all,
@@ -87,7 +89,7 @@ module EventCalendar
           end
           
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
-            o_start = o.to_time
+            o_start = o.to_date.to_time_in_current_zone
             o_end = o_start + recurring_event.occurrences.duration
             
             # 2012-06-14
@@ -133,7 +135,7 @@ module EventCalendar
                       e = recurring_event.dup
                       e.children << recurring_event.children.dup
                       e.base_event_id = recurring_event.id
-                      e.start_at = day.to_time
+                      e.start_at = day.to_datetime
                       e.end_at = e.start_at
                     end
                   end
