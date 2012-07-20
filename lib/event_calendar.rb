@@ -69,9 +69,10 @@ module EventCalendar
 
       base_events = self.scoped(find_options).find(
         :all,
-        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_time_in_current_zone, end_d.to_time_in_current_zone ],
+        :conditions => [ "(? <= #{self.quoted_table_name}.#{self.end_at_field}) AND (#{self.quoted_table_name}.#{self.start_at_field}< ?)", start_d.to_datetime.to_time_in_current_zone, end_d.to_datetime.to_time_in_current_zone ],
         :order => "#{self.quoted_table_name}.#{self.start_at_field} ASC"
       )
+            
       
       if with_recurring
         recurring_events = self.scoped(find_options).find(
@@ -89,7 +90,11 @@ module EventCalendar
           end
           
           recurring_event.occurrences.occurrences(end_d.end_of_day).each do |o|
-            o_start = o.to_date.to_time_in_current_zone
+            if recurring_event.is_a? SchedulePeriod
+              o_start = o.to_date.to_time_in_current_zone
+            else
+              o_start = o.to_time
+            end
             o_end = o_start + recurring_event.occurrences.duration
             
             # 2012-06-14
@@ -135,7 +140,8 @@ module EventCalendar
                       e = recurring_event.dup
                       e.children << recurring_event.children.dup
                       e.base_event_id = recurring_event.id
-                      e.start_at = day.to_datetime
+                      e.start_at = day.to_time
+                      #e.start_at = day.to_datetime
                       e.end_at = e.start_at
                     end
                   end
@@ -218,9 +224,9 @@ module EventCalendar
       event_strips = [[nil] * (strip_end - strip_start + 1)]
 
       events.each do |event|
-        if event.is_a?(Swap) and !event.all_day?
-          event.end_at = event.end_at.beginning_of_day - 1.second
-        end
+        #if event.is_a?(Swap) and !event.all_day?
+        #  event.end_at = event.end_at.beginning_of_day - 1.second
+        #end
 #        logger.info "----- event loop -----"
 #        logger.info "event_strips = #{event_strips.inspect}"
         cur_date = event.start_at
